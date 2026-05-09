@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
 export default function QuizResult() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [attempt, setAttempt] = useState(null);
   const [quiz, setQuiz] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -37,8 +39,18 @@ export default function QuizResult() {
     <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         <div className="mb-8 flex justify-between items-center">
-          <button onClick={() => navigate('/student-dashboard')} className="text-blue-600 hover:underline">
-            &larr; Back to Dashboard
+          <button 
+            onClick={() => {
+              if (user?.role === 'teacher') {
+                navigate(`/teacher/quiz-results/${quiz._id}`);
+              } else {
+                navigate('/student-dashboard');
+              }
+            }} 
+            className="text-blue-600 hover:underline flex items-center"
+          >
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Back to {user?.role === 'teacher' ? 'Results Dashboard' : 'Dashboard'}
           </button>
         </div>
 

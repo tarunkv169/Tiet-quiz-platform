@@ -8,6 +8,8 @@ import TakeQuiz from './pages/TakeQuiz';
 import QuizResult from './pages/QuizResult';
 import TeacherQuizResults from './pages/TeacherQuizResults';
 import TeacherSubjectQuizzes from './pages/TeacherSubjectQuizzes';
+import CreateQuizManual from './pages/CreateQuizManual';
+import GenerateQuizAI from './pages/GenerateQuizAI';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -78,6 +80,24 @@ function App() {
             />
             
             <Route 
+              path="/teacher/create-quiz" 
+              element={
+                <ProtectedRoute allowedRoles={['teacher']}>
+                  <CreateQuizManual />
+                </ProtectedRoute>
+              } 
+            />
+
+            <Route 
+              path="/teacher/generate-quiz" 
+              element={
+                <ProtectedRoute allowedRoles={['teacher']}>
+                  <GenerateQuizAI />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
               path="/quiz/:id" 
               element={
                 <ProtectedRoute allowedRoles={['student']}>
@@ -89,7 +109,7 @@ function App() {
             <Route 
               path="/quiz-results/:id" 
               element={
-                <ProtectedRoute allowedRoles={['student']}>
+                <ProtectedRoute allowedRoles={['student', 'teacher']}>
                   <QuizResult />
                 </ProtectedRoute>
               } 

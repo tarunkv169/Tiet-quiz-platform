@@ -7,28 +7,7 @@ export default function TeacherDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [quizzes, setQuizzes] = useState([]);
-  const [showManualForm, setShowManualForm] = useState(false);
-  const [showAiForm, setShowAiForm] = useState(false);
-
-  // Manual Quiz Form State
-  const [manualTitle, setManualTitle] = useState('');
-  const [questions, setQuestions] = useState([
-    { question: '', options: ['', '', '', ''], correctAnswer: '', explanation: '' }
-  ]);
-  const [manualStartTime, setManualStartTime] = useState('');
-  const [manualDuration, setManualDuration] = useState('');
-  const [manualDeadline, setManualDeadline] = useState('');
-  const [manualTargetGroup, setManualTargetGroup] = useState('');
-
-  // AI Quiz Form State
-  const [aiTitle, setAiTitle] = useState('');
-  const [file, setFile] = useState(null);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
-  const [aiStartTime, setAiStartTime] = useState('');
-  const [aiDuration, setAiDuration] = useState('');
-  const [aiDeadline, setAiDeadline] = useState('');
-  const [aiTargetGroup, setAiTargetGroup] = useState('');
 
   useEffect(() => {
     fetchQuizzes();
@@ -40,6 +19,7 @@ export default function TeacherDashboard() {
       setQuizzes(res.data);
     } catch (err) {
       console.error(err);
+      setError('Failed to fetch quizzes');
     }
   };
 
@@ -51,78 +31,6 @@ export default function TeacherDashboard() {
     } catch (err) {
       alert(err.response?.data?.message || 'Error deleting quiz');
     }
-  };
-
-  const handleManualSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await api.post('/quiz/create-manual', { 
-        title: manualTitle, 
-        questions,
-        scheduledStartTime: manualStartTime ? new Date(manualStartTime).toISOString() : null,
-        duration: manualDuration ? parseInt(manualDuration, 10) : null,
-        deadline: manualDeadline ? new Date(manualDeadline).toISOString() : null,
-        targetGroup: manualTargetGroup || null
-      });
-      setShowManualForm(false);
-      setManualTitle('');
-      setManualStartTime('');
-      setManualDuration('');
-      setManualDeadline('');
-      setManualTargetGroup('');
-      setQuestions([{ question: '', options: ['', '', '', ''], correctAnswer: '', explanation: '' }]);
-      fetchQuizzes();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Error creating quiz');
-    }
-  };
-
-  const handleAiSubmit = async (e) => {
-    e.preventDefault();
-    if (!file) {
-      setError('Please upload a file');
-      return;
-    }
-    
-    setIsGenerating(true);
-    setError('');
-    const formData = new FormData();
-    formData.append('title', aiTitle);
-    formData.append('document', file);
-    if (aiStartTime) formData.append('scheduledStartTime', new Date(aiStartTime).toISOString());
-    if (aiDuration) formData.append('duration', parseInt(aiDuration, 10));
-    if (aiDeadline) formData.append('deadline', new Date(aiDeadline).toISOString());
-    if (aiTargetGroup) formData.append('targetGroup', aiTargetGroup);
-
-    try {
-      await api.post('/ai/generate-quiz', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      setShowAiForm(false);
-      setAiTitle('');
-      setAiStartTime('');
-      setAiDuration('');
-      setAiDeadline('');
-      setAiTargetGroup('');
-      setFile(null);
-      fetchQuizzes();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Error generating quiz');
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const updateQuestion = (index, field, value) => {
-    const updated = [...questions];
-    updated[index][field] = value;
-    setQuestions(updated);
-  };
-
-  const updateOption = (qIndex, oIndex, value) => {
-    const updated = [...questions];
-    updated[qIndex].options[oIndex] = value;
-    setQuestions(updated);
   };
 
   // Group quizzes by targetGroup
@@ -150,181 +58,21 @@ export default function TeacherDashboard() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <button 
-            onClick={() => { setShowManualForm(!showManualForm); setShowAiForm(false); }}
-            className="p-6 bg-white rounded-xl shadow-sm border border-slate-200 hover:border-blue-500 hover:shadow-md transition text-left"
+            onClick={() => navigate('/teacher/create-quiz')}
+            className="p-6 bg-white rounded-xl shadow-sm border border-slate-200 hover:border-blue-500 hover:shadow-md transition text-left group"
           >
-            <h3 className="text-xl font-semibold text-slate-800">Create Quiz Manually</h3>
+            <h3 className="text-xl font-semibold text-slate-800 group-hover:text-blue-600 transition">Create Quiz Manually &rarr;</h3>
             <p className="text-slate-500 mt-2">Add your own questions, options, and explanations.</p>
           </button>
           
           <button 
-            onClick={() => { setShowAiForm(!showAiForm); setShowManualForm(false); }}
-            className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl shadow-sm border border-blue-100 hover:border-blue-500 hover:shadow-md transition text-left"
+            onClick={() => navigate('/teacher/generate-quiz')}
+            className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl shadow-sm border border-blue-100 hover:border-blue-500 hover:shadow-md transition text-left group"
           >
-            <h3 className="text-xl font-semibold text-blue-900">Generate with AI (Upload Material)</h3>
-            <p className="text-blue-700 mt-2">Upload a PDF or Text file and let Gemini AI create a quiz for you instantly.</p>
+            <h3 className="text-xl font-semibold text-blue-900 group-hover:text-blue-700 transition">Generate with AI (Upload Material) &rarr;</h3>
+            <p className="text-blue-700 mt-2">Upload a PDF or Text file to generate quiz instantly.</p>
           </button>
         </div>
-
-        {/* AI Generation Form */}
-        {showAiForm && (
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-8">
-            <h2 className="text-2xl font-bold mb-4 text-slate-800">Generate Quiz with AI</h2>
-            <form onSubmit={handleAiSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Quiz Title</label>
-                <input 
-                  type="text" required value={aiTitle} onChange={e => setAiTitle(e.target.value)}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                  placeholder="e.g., Introduction to React"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Study Material (PDF/TXT)</label>
-                <input 
-                  type="file" accept=".pdf,.txt" required onChange={e => setFile(e.target.files[0])}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Target Group Code (Optional)</label>
-                  <input 
-                    type="text" value={aiTargetGroup} onChange={e => setAiTargetGroup(e.target.value.toUpperCase())}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                    placeholder="e.g. GRP-101"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Deadline Time (Optional)</label>
-                  <input 
-                    type="datetime-local" value={aiDeadline} onChange={e => setAiDeadline(e.target.value)}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Scheduled Start Time (Optional)</label>
-                  <input 
-                    type="datetime-local" value={aiStartTime} onChange={e => setAiStartTime(e.target.value)}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Duration in minutes (Optional)</label>
-                  <input 
-                    type="number" min="1" value={aiDuration} onChange={e => setAiDuration(e.target.value)}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                    placeholder="e.g. 30"
-                  />
-                </div>
-              </div>
-              <button 
-                type="submit" disabled={isGenerating}
-                className={`px-6 py-2 rounded-lg text-white font-medium ${isGenerating ? 'bg-slate-400' : 'bg-blue-600 hover:bg-blue-700'}`}
-              >
-                {isGenerating ? 'Generating... This may take a minute.' : 'Generate Quiz'}
-              </button>
-            </form>
-          </div>
-        )}
-
-        {/* Manual Form */}
-        {showManualForm && (
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-8">
-            <h2 className="text-2xl font-bold mb-4 text-slate-800">Create Quiz Manually</h2>
-            <form onSubmit={handleManualSubmit} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Quiz Title</label>
-                <input 
-                  type="text" required value={manualTitle} onChange={e => setManualTitle(e.target.value)}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                />
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Target Group Code (Optional)</label>
-                  <input 
-                    type="text" value={manualTargetGroup} onChange={e => setManualTargetGroup(e.target.value.toUpperCase())}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                    placeholder="e.g. GRP-101"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Deadline Time (Optional)</label>
-                  <input 
-                    type="datetime-local" value={manualDeadline} onChange={e => setManualDeadline(e.target.value)}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Scheduled Start Time (Optional)</label>
-                  <input 
-                    type="datetime-local" value={manualStartTime} onChange={e => setManualStartTime(e.target.value)}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Duration in minutes (Optional)</label>
-                  <input 
-                    type="number" min="1" value={manualDuration} onChange={e => setManualDuration(e.target.value)}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                    placeholder="e.g. 30"
-                  />
-                </div>
-              </div>
-              
-              {questions.map((q, qIndex) => (
-                <div key={qIndex} className="p-4 border border-slate-200 rounded-lg bg-slate-50 space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h4 className="font-semibold text-slate-700">Question {qIndex + 1}</h4>
-                    {questions.length > 1 && (
-                      <button type="button" onClick={() => setQuestions(questions.filter((_, i) => i !== qIndex))} className="text-red-500 text-sm hover:underline">Remove</button>
-                    )}
-                  </div>
-                  <input 
-                    type="text" required placeholder="Question text" value={q.question} onChange={e => updateQuestion(qIndex, 'question', e.target.value)}
-                    className="w-full px-3 py-2 border rounded-md"
-                  />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {q.options.map((opt, oIndex) => (
-                      <input 
-                        key={oIndex} type="text" required placeholder={`Option ${oIndex + 1}`} value={opt} onChange={e => updateOption(qIndex, oIndex, e.target.value)}
-                        className="w-full px-3 py-2 border rounded-md"
-                      />
-                    ))}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Correct Answer (Must match one option exactly)</label>
-                    <input 
-                      type="text" required value={q.correctAnswer} onChange={e => updateQuestion(qIndex, 'correctAnswer', e.target.value)}
-                      className="w-full px-3 py-2 border rounded-md"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Explanation</label>
-                    <textarea 
-                      required value={q.explanation} onChange={e => updateQuestion(qIndex, 'explanation', e.target.value)}
-                      className="w-full px-3 py-2 border rounded-md" rows="2"
-                    ></textarea>
-                  </div>
-                </div>
-              ))}
-              
-              <div className="flex gap-4">
-                <button 
-                  type="button" onClick={() => setQuestions([...questions, { question: '', options: ['', '', '', ''], correctAnswer: '', explanation: '' }])}
-                  className="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50"
-                >
-                  + Add Question
-                </button>
-                <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                  Save Quiz
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
 
         {/* Existing Quizzes */}
         <h2 className="text-2xl font-bold mb-6 text-slate-800">Your Quizzes</h2>

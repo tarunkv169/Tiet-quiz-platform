@@ -295,11 +295,12 @@ exports.getSubjectsWithStats = async (req, res) => {
         name: teacher.name,
         subject: teacher.subject,
         newQuizCount,
-        upcomingQuizCount
+        upcomingQuizCount,
+        hasVisibleQuizzes: teacherQuizzes.length > 0
       };
     });
 
-    res.json(subjects);
+    res.json(subjects.filter(s => s.hasVisibleQuizzes));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

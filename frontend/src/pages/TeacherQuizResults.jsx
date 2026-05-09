@@ -9,6 +9,7 @@ export default function TeacherQuizResults() {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -80,9 +81,18 @@ export default function TeacherQuizResults() {
           Back to Dashboard
         </button>
 
-        <header className="mb-8 bg-white p-8 rounded-2xl shadow-sm border border-slate-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">{quiz?.title}</h1>
-          <p className="text-slate-600">Results Dashboard</p>
+        <header className="mb-8 bg-white p-8 rounded-2xl shadow-sm border border-slate-200 bg-gradient-to-r from-blue-50 to-indigo-50 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 mb-2">{quiz?.title}</h1>
+            <p className="text-slate-600">Results Dashboard</p>
+          </div>
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="px-5 py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition shadow-sm flex items-center"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+            View Original Quiz
+          </button>
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -122,6 +132,7 @@ export default function TeacherQuizResults() {
                     <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Score</th>
                     <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Percentage</th>
                     <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Date Attempted</th>
+                    <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -155,6 +166,14 @@ export default function TeacherQuizResults() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
                         {new Date(attempt.createdAt).toLocaleString()}
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button 
+                          onClick={() => navigate(`/quiz-results/${attempt._id}`)}
+                          className="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition font-semibold"
+                        >
+                          View Attempt
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -163,6 +182,44 @@ export default function TeacherQuizResults() {
           )}
         </div>
       </div>
+
+      {/* Original Quiz Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl">
+            <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50 rounded-t-2xl">
+              <h2 className="text-2xl font-bold text-slate-800">Original Quiz: {quiz?.title}</h2>
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 hover:bg-slate-200 p-2 rounded-full transition"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+            
+            <div className="p-8 overflow-y-auto flex-1 bg-slate-50">
+              <div className="space-y-8">
+                {quiz?.questions?.map((q, idx) => (
+                  <div key={idx} className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <p className="font-bold text-lg text-slate-800 mb-4"><span className="text-indigo-600 mr-2">Q{idx + 1}.</span> {q.question}</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
+                      {q.options.map((opt, oIdx) => (
+                        <div 
+                          key={oIdx} 
+                          className={`p-3 rounded-lg border-2 ${opt === q.correctAnswer ? 'border-green-500 bg-green-50 font-medium text-green-800' : 'border-slate-100 bg-slate-50 text-slate-600'}`}
+                        >
+                          {opt}
+                          {opt === q.correctAnswer && <span className="ml-2 text-green-600 font-bold">✓ Correct Answer</span>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
