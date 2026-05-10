@@ -19,8 +19,8 @@ const extractText = async (file) => {
   return text;
 };
 
-const generateQuizFromText = async (text) => {
-  const prompt = `You are an expert teacher. Generate 10 multiple choice questions from the given content. Each question must have 4 options, one correct answer, and a comprehensive explanation. The explanation MUST explicitly state why the correct answer is right AND briefly explain why the other options are incorrect. Do not simply restate the question. Output in strict JSON format.
+const generateQuizFromText = async (text, numQuestions = 10) => {
+  const prompt = `You are an expert teacher. Generate ${numQuestions} multiple choice questions from the given content. Each question must have 4 options, one correct answer, and a comprehensive explanation. The explanation MUST explicitly state why the correct answer is right AND briefly explain why the other options are incorrect. Do not simply restate the question. Output in strict JSON format.
 
   Content:
   ${text}

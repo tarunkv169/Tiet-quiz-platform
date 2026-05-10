@@ -174,7 +174,14 @@ exports.submitQuiz = async (req, res) => {
 exports.getStudentAttempts = async (req, res) => {
   try {
     const attempts = await Attempt.find({ studentId: req.user._id })
-      .populate('quizId', 'title')
+      .populate({
+        path: 'quizId',
+        select: 'title createdBy',
+        populate: {
+          path: 'createdBy',
+          select: 'subject name'
+        }
+      })
       .sort({ createdAt: -1 });
     res.json(attempts);
   } catch (error) {

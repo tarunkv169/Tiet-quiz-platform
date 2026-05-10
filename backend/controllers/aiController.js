@@ -3,7 +3,7 @@ const Quiz = require('../models/Quiz');
 
 exports.generateQuiz = async (req, res) => {
   try {
-    const { title, scheduledStartTime, duration, deadline, targetGroup } = req.body;
+    const { title, scheduledStartTime, duration, deadline, targetGroup, numQuestions } = req.body;
     
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
@@ -21,8 +21,11 @@ exports.generateQuiz = async (req, res) => {
       return res.status(400).json({ message: 'Could not extract enough text from the document.' });
     }
 
+    // Parse numQuestions to integer or use default
+    const parsedNumQuestions = numQuestions ? parseInt(numQuestions, 10) : 10;
+
     // Generate questions using AI
-    const questions = await generateQuizFromText(text);
+    const questions = await generateQuizFromText(text, parsedNumQuestions);
 
     // Save generated quiz to database
     const quiz = await Quiz.create({

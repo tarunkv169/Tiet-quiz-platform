@@ -12,6 +12,7 @@ export default function GenerateQuizAI() {
   const [aiDuration, setAiDuration] = useState('');
   const [aiDeadline, setAiDeadline] = useState('');
   const [aiTargetGroup, setAiTargetGroup] = useState('');
+  const [aiNumQuestions, setAiNumQuestions] = useState(10);
 
   const handleAiSubmit = async (e) => {
     e.preventDefault();
@@ -29,6 +30,7 @@ export default function GenerateQuizAI() {
     if (aiDuration) formData.append('duration', parseInt(aiDuration, 10));
     if (aiDeadline) formData.append('deadline', new Date(aiDeadline).toISOString());
     if (aiTargetGroup) formData.append('targetGroup', aiTargetGroup);
+    formData.append('numQuestions', aiNumQuestions);
 
     try {
       await api.post('/ai/generate-quiz', formData, {
@@ -110,6 +112,14 @@ export default function GenerateQuizAI() {
                   type="number" min="1" value={aiDuration} onChange={e => setAiDuration(e.target.value)}
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                   placeholder="e.g. 30"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Number of Questions</label>
+                <input 
+                  type="number" min="1" max="50" value={aiNumQuestions} onChange={e => setAiNumQuestions(e.target.value)}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="e.g. 10"
                 />
               </div>
             </div>

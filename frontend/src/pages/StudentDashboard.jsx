@@ -107,20 +107,34 @@ export default function StudentDashboard() {
             {attempts.length === 0 ? (
               <p className="text-slate-500 bg-white p-8 rounded-xl shadow-sm text-center">You haven't attempted any quizzes yet.</p>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {attempts.map(attempt => (
-                  <div key={attempt._id} className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                    <div className="flex justify-between items-start mb-4">
-                      <h3 className="font-bold text-lg text-slate-800">{attempt.quizId?.title || 'Unknown Quiz'}</h3>
-                      <span className="text-xl font-bold text-blue-600">{attempt.score} / {attempt.resultDetails?.length}</span>
+              <div className="space-y-8">
+                {Object.entries(
+                  attempts.reduce((acc, attempt) => {
+                    const subject = attempt.quizId?.createdBy?.subject || 'General';
+                    if (!acc[subject]) acc[subject] = [];
+                    acc[subject].push(attempt);
+                    return acc;
+                  }, {})
+                ).map(([subject, subjectAttempts]) => (
+                  <div key={subject}>
+                    <h2 className="text-xl font-bold text-slate-800 mb-4 capitalize border-b border-slate-200 pb-2">{subject}</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {subjectAttempts.map(attempt => (
+                        <div key={attempt._id} className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                          <div className="flex justify-between items-start mb-4">
+                            <h3 className="font-bold text-lg text-slate-800">{attempt.quizId?.title || 'Unknown Quiz'}</h3>
+                            <span className="text-xl font-bold text-blue-600">{attempt.score} / {attempt.resultDetails?.length}</span>
+                          </div>
+                          <p className="text-xs text-slate-400 mb-4">Completed: {new Date(attempt.createdAt).toLocaleDateString()}</p>
+                          <button 
+                            onClick={() => navigate(`/quiz-results/${attempt._id}`)}
+                            className="w-full py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 font-medium transition"
+                          >
+                            View Details
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                    <p className="text-xs text-slate-400 mb-4">Completed: {new Date(attempt.createdAt).toLocaleDateString()}</p>
-                    <button 
-                      onClick={() => navigate(`/quiz-results/${attempt._id}`)}
-                      className="w-full py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 font-medium transition"
-                    >
-                      View Details
-                    </button>
                   </div>
                 ))}
               </div>
